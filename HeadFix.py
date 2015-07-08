@@ -12,15 +12,15 @@ class Task:
         self.currentMouse = Mouse("0123456789")
 
         # output pin for the pistons
-        self.pistons_pin = 24
+        self.pistons_pin = 17
         # output pin for the water dispenser
-        self.reward_pin = 17
+        self.reward_pin = 27
         # input pin for the tag in range on  the RFID reader
-        self.range_pin = 18
+        self.range_pin = 22
         # input pin for the head bar contact in the chamber
-        self.contact_pin = 22
+        self.contact_pin = 6
         # output pin for the Blue LED.
-        self.led_pin = 4
+        self.led_pin = 19
         # output pin for the stimulus LED
         self.stimulus_led_pin = 21
 
@@ -41,16 +41,16 @@ class Task:
         # time for when the program is idling or waiting for something, ensures there isn't cpu overload.
         self.cpu_rest_time = 0.01
         # time the stimulus led remains on
-        self.stimulus_led_on_time = 0.01 # 10ms
+        self.stimulus_led_on_time = 0.05 # 50ms
 
         # sets up the GPIO headers each for their respective functionality.
         self.setup_gpio_lines()
 
         # where to put the text file and video files
-        self.data_file_path = "/media/118D-D10B/HeadFix2Data/TextFiles/"
+        self.data_file_path = "/media/Cage1/TextFiles/"
         self.data_file_name = "headFix_"
-        self.stats_file_name = "/media/118D-D10B/HeadFix2Data/TextFiles/currentStats_"
-        self.video_path = "/media/118D-D10B/HeadFix2Data/movies/"
+        self.stats_file_name = "/media/Cage1/TextFiles/currentStats_"
+        self.video_path = "/media/Cage1/Videos/"
         #serial port, "/dev/ttyAMA0" for built-in serial port
         #  "/dev/ttyUSB0" for USB-to-Serial
         self.serial_port = "/dev/ttyAMA0"
@@ -153,9 +153,9 @@ class Task:
             self.currentMouse.headfixed_rewards += 1
 
             # Light stimulus occurs every 5 seconds!
-            sleep(self.inter_reward_interval/2.0)
-            #self.light_stimulus()
-            sleep(self.inter_reward_interval/2.0)
+            sleep(self.inter_reward_interval/2.0-self.reward_time)
+            self.light_stimulus()
+            sleep(self.inter_reward_interval/2.0-self.stimulus_led_on_time)
 
             ## MODIFY HERE FOR INCLUDING OTHER STIMULI.
         # end of reward/stimuli loop
