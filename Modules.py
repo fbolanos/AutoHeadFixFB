@@ -4,6 +4,7 @@ from serial import Serial
 import picamera
 from time import sleep, time
 from datetime import datetime
+import RPi.GPIO as GPIO
 
 port = "/dev/ttyUSB0"
 
@@ -125,8 +126,13 @@ class DataCollector:
     def save_mouse_Reward_given(self, tag, n_reward):
         self.save_helper(tag, time(), 'reward' + str(n_reward))
 
-    def save_light_stimulus(self, tag):
-        self.save_helper(tag, time(), 'light')
+    ''' led_side is one of:
+            L for left LED
+            C for center LED
+            R for right LED
+    '''
+    def save_light_stimulus(self, tag, led_side):
+        self.save_helper(tag, time(), 'light-' + led_side)
 
     def save_mouse_Headfix_end(self, tag):
         self.save_helper(tag, time(), 'complete')
@@ -137,4 +143,58 @@ class DataCollector:
     def save_end_session(self):
         self.save_helper('0000000000', time(), 'SeshEnd')
 
+
+class LightStimulus():
+    def __init__(self, left, center, right, time_on, length, frequency):
+        # output pin for the stimulus the left LED (blue cable)
+        self.stimulus_left_led_pin = left
+        # output pin for the stimulus the center led (green cable)
+        self.stimulus_center_led_pin = center
+        # output pin for the stimulus the right led (red cable)
+        self.stimulus_right_led_pin = right
+        # time to turn on the LED
+        self.stimulus_led_on_time = time_on
+        # length of stimulation train in seconds
+        self.length_of_light_stimulus_train = length
+        # frequency of light stimulation in Hz
+        self.light_stimulation_frequency = frequency
+
+        self.setup_gpio_for_leds()
+
+        # Constant for the light stimulus contains L, C, R
+        self.led_to_turn_on = ['L', 'C', 'R']
+        self.counter = 0
+
+
+    def setup_gpio_for_leds(self):
+        GPIO.setup (self.stimulus_left_led_pin, GPIO.OUT)
+        GPIO.setup (self.stimulus_center_led_pin, GPIO.OUT)
+        GPIO.setup (self.stimulus_right_led_pin, GPIO.OUT)
+
+
+    # Simple light stimulus!
+    def stimulate(self, collector, tag):
+        collector.save_light_stimulus(tag, self.led_to_turn_on[self.counter])
+
+        # Left LED's turn
+        if self.led_to_turn_on[self.counter] == 'L':
+            led_pin_to_use = self.stimulus_left_led_pin
+        # Right LED's turn
+        elif self.led_to_turn_on[self.counter] == 'R':
+            led_pin_to_use = self.stimulus_right_led_pin
+        else: # Center's LED
+            led_pin_to_use = self.stimulus_center_led_pin
+
+        self.counter = (self.counter + 1) % len(self.led_to_turn_on)
+
+
+        # Calculate and iterate the number of times to turn on the LED
+        number_of_led_flashes = int(self.light_stimulation_frequency * self.length_of_light_stimulus_train)
+        for i in range(number_of_led_flashes):
+            GPIO.output(led_pin_to_use, True)
+            sleep(self.stimulus_led_on_time)
+            GPIO.output(led_pin_to_use, False)
+
+            off_time = (1.0/self.light_stimulation_frequency) - self.stimulus_led_on_time
+            sleep(off_time)
 

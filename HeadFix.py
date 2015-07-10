@@ -21,19 +21,24 @@ class Task:
         self.contact_pin = 6
         # output pin for the Blue LED.
         self.led_pin = 19
-        # output pin for the stimulus LED
-        self.stimulus_led_pin = 21
+        # output pin for the stimulus the left LED (blue cable)
+        self.stimulus_left_led_pin = 20
+        # output pin for the stimulus the center led (green cable)
+        self.stimulus_center_led_pin = 21
+        # output pin for the stimulus the right led (red cable)
+        self.stimulus_right_led_pin = 16
+
 
         # variables -timing
         # reward time, in seconds
-        self.reward_time = 100e-3
+        self.reward_time = 400e-3
         # time for mouse to get head off the contacts when session ends, so he won't be immediately fixed again
         self.skedaddle_time = 3
         # number of rewards to give in a head fix trial
-        self.number_of_headfix_rewards = 6
+        self.number_of_headfix_rewards = 3
         # time between rewards, in seconds
         # time of a session is (nRewards) * interRewardInterval
-        self.inter_reward_interval = 5.0
+        self.inter_reward_interval = 10.0
         # maximum number of entrance rewards that will be given.
         self.maximum_entrance_rewards = 100
         # time before an entrance reward is given to avoid immediate in an outs
@@ -41,7 +46,11 @@ class Task:
         # time for when the program is idling or waiting for something, ensures there isn't cpu overload.
         self.cpu_rest_time = 0.01
         # time the stimulus led remains on
-        self.stimulus_led_on_time = 0.05 # 50ms
+        self.stimulus_led_on_time = 0.01 # 10ms
+        # length of stimulation train in seconds
+        self.length_of_light_stimulus_train = 1.0
+        # frequency of light stimulation in Hz
+        self.light_stimulation_frequency = 10
 
         # sets up the GPIO headers each for their respective functionality.
         self.setup_gpio_lines()
@@ -66,6 +75,16 @@ class Task:
 
         # The data collector/writer
         self.collector = DataCollector(self.data_file_path)
+
+        # The light stimulus class for the 3 LEDs, setups 3 more gpio lines depending on arguments.
+        self.light_stimulus = LightStimulus(self.stimulus_left_led_pin,
+                                            self.stimulus_center_led_pin,
+                                            self.stimulus_right_led_pin,
+                                            self.stimulus_led_on_time,
+                                            self.length_of_light_stimulus_train,
+                                            self.light_stimulation_frequency)
+
+
 
 
 
@@ -152,10 +171,11 @@ class Task:
             self.collector.save_mouse_Reward_given(self.currentMouse.tag, i)
             self.currentMouse.headfixed_rewards += 1
 
-            # Light stimulus occurs every 5 seconds!
+            # Light stimulus occurs every 10 seconds!
             sleep(self.inter_reward_interval/2.0-self.reward_time)
-            self.light_stimulus()
-            sleep(self.inter_reward_interval/2.0-self.stimulus_led_on_time)
+            # Give the data collector so that it knows where to write the data and the mouse's tag
+            self.light_stimulus.stimulate(self.collector, self.currentMouse.tag)
+            sleep(self.inter_reward_interval/2.0-self.length_of_light_stimulus_train)
 
             ## MODIFY HERE FOR INCLUDING OTHER STIMULI.
         # end of reward/stimuli loop
@@ -175,12 +195,6 @@ class Task:
         # Time before the mouse is headfixed again.
         sleep(self.skedaddle_time)
 
-    # Simple light stimulus! 
-    def light_stimulus(self):
-        self.collector.save_light_stimulus(self.currentMouse.tag)
-        GPIO.output(self.stimulus_led_pin, True)
-        sleep(self.stimulus_led_on_time)
-        GPIO.output(self.stimulus_led_pin, False)
 
     # Simply dispenses water reward.
     def dispense_reward(self):
@@ -238,7 +252,6 @@ class Task:
         GPIO.setup (self.pistons_pin, GPIO.OUT)
         GPIO.setup (self.reward_pin, GPIO.OUT)
         GPIO.setup (self.led_pin, GPIO.OUT)
-        GPIO.setup (self.stimulus_led_pin, GPIO.OUT)
         GPIO.setup (self.range_pin, GPIO.IN)
         GPIO.setup (self.contact_pin, GPIO.IN)
 
