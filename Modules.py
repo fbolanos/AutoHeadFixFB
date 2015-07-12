@@ -165,7 +165,7 @@ class LightStimulus():
         self.setup_gpio_for_leds()
 
         # Constant for the light stimulus contains L, C, R
-        self.led_to_turn_on = ['L', 'C', 'R']
+        self.led_to_turn_on = ['L', 'R', 'L']
         self.counter = 0
         self.number_of_leds = len(self.led_to_turn_on)
 
