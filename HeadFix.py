@@ -3,6 +3,7 @@ __author__ = 'Federico'
 
 from Modules import *
 import RPi.GPIO as GPIO
+import os
 
 class Task:
     def __init__(self):
@@ -56,10 +57,16 @@ class Task:
         self.setup_gpio_lines()
 
         # where to put the text file and video files
-        self.data_file_path = "/media/Cage1/TextFiles/"
+        # Format: /media/Cage1/MMDD/ID_type/Videos/*
+        #         /media/Cage1/MMDD/ID_type/TextFiles/*
+        self.data_file_path = "/media/Cage1/"
+        self.textfile_path = "TextFiles/"
+        self.video_path = "Videos/"
+        self.data_full_path = ""
+        self.stats_full_path = ""
         self.data_file_name = "headFix_"
-        self.stats_file_name = "/media/Cage1/TextFiles/currentStats_"
-        self.video_path = "/media/Cage1/Videos/"
+        self.stats_file_name = "quickStats_"
+
         #serial port, "/dev/ttyAMA0" for built-in serial port
         #  "/dev/ttyUSB0" for USB-to-Serial
         self.serial_port = "/dev/ttyAMA0"
@@ -205,7 +212,9 @@ class Task:
 
     # Naming scheme: headFix_XX_MMDD.txt
     def setup_full_path_data(self):
+        #os.chdir(self.data_file_path)
         cage_id = input("Type the cage ID: ")
+
 
         # This section of the code creates the appropriate name of the file.
         date_now = ""
@@ -217,13 +226,27 @@ class Task:
             date_now += "0"
         date_now += str(datetime.now().day)
 
-        self.data_file_path += (self.data_file_name + cage_id + "_" + date_now + ".txt")
-        self.video_path += cage_id + "/"
-        self.stats_file_name += cage_id + ".txt"
+        self.data_file_path += (date_now + "/" + cage_id + "/")
 
-        print ("The path of data file will be: " + self.data_file_path)
+        if not os.path.exists(self.data_file_path):
+            os.makedirs(self.data_file_path)
+
+        self.data_full_path = (self.data_file_path + self.textfile_path)
+        if not os.path.exists(self.data_full_path):
+            os.makedirs(self.data_full_path)
+
+        self.video_path = (self.data_file_path + self.video_path)
+        if not os.path.exists(self.video_path):
+            os.makedirs(self.video_path)
+
+        self.stats_full_path = self.data_full_path
+
+        self.data_full_path += (self.data_file_name + cage_id + "_" + date_now + ".txt")
+        self.stats_full_path += (self.stats_file_name + cage_id + "_" + date_now + ".txt")
+
+        print ("The path of data file will be: " + self.data_full_path)
         print ("The path of the video files will be: " + self.video_path)
-        print ("The path of the stats file will be: " + self.stats_file_name)
+        print ("The path of the stats file will be: " + self.stats_full_path)
 
         ans = input("Is this correct? (y/n): ")
 
