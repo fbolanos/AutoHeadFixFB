@@ -161,14 +161,15 @@ class Task:
         # Create the path for the video
         video_name = self.video_path + "M" + str(self.currentMouse.tag) + "_" + str(fixation_time) + ".raw"
 
-        self.camera.start_recording(video_name)
-
         # Turn on the blue led
         GPIO.output(self.led_pin, True)
 
+        self.camera.start_recording(video_name)
+
+
         for i in range(self.number_of_headfix_rewards):
-            self.dispense_reward()
             self.collector.save_mouse_Reward_given(self.currentMouse.tag, i)
+            self.dispense_reward()
             self.currentMouse.headfixed_rewards += 1
 
             # Light stimulus occurs every 10 seconds!

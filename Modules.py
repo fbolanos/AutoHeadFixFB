@@ -158,12 +158,16 @@ class LightStimulus():
         self.length_of_light_stimulus_train = length
         # frequency of light stimulation in Hz
         self.light_stimulation_frequency = frequency
-
+        # Total number of flashes.
+        self.number_of_led_flashes = int(self.light_stimulation_frequency * self.length_of_light_stimulus_train)
+        # Calculate the off period of the LED per flash
+        self.stimulus_led_off_time = (1.0/self.light_stimulation_frequency) - self.stimulus_led_on_time
         self.setup_gpio_for_leds()
 
         # Constant for the light stimulus contains L, C, R
         self.led_to_turn_on = ['L', 'C', 'R']
         self.counter = 0
+        self.number_of_leds = len(self.led_to_turn_on)
 
 
     def setup_gpio_for_leds(self):
@@ -185,16 +189,12 @@ class LightStimulus():
         else: # Center's LED
             led_pin_to_use = self.stimulus_center_led_pin
 
-        self.counter = (self.counter + 1) % len(self.led_to_turn_on)
+        self.counter = (self.counter + 1) % self.number_of_leds
 
-
-        # Calculate and iterate the number of times to turn on the LED
-        number_of_led_flashes = int(self.light_stimulation_frequency * self.length_of_light_stimulus_train)
-        for i in range(number_of_led_flashes):
+        # Iterate through all the number of flashes.
+        for i in range(self.number_of_led_flashes):
             GPIO.output(led_pin_to_use, True)
             sleep(self.stimulus_led_on_time)
             GPIO.output(led_pin_to_use, False)
-
-            off_time = (1.0/self.light_stimulation_frequency) - self.stimulus_led_on_time
-            sleep(off_time)
+            sleep(self.stimulus_led_off_time)
 
