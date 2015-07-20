@@ -28,6 +28,8 @@ class Task:
         self.stimulus_center_led_pin = 21
         # output pin for the stimulus the right led (red cable)
         self.stimulus_right_led_pin = 16
+        # Pin for the piezo
+        self.piezo_pin = 20
 
 
         # variables -timing
@@ -52,6 +54,8 @@ class Task:
         self.length_of_light_stimulus_train = 1.0
         # frequency of light stimulation in Hz
         self.light_stimulation_frequency = 10
+        # duration of the piezo on time
+        self.piezo_duration = 1.0
 
         # sets up the GPIO headers each for their respective functionality.
         self.setup_gpio_lines()
@@ -90,6 +94,10 @@ class Task:
                                             self.stimulus_led_on_time,
                                             self.length_of_light_stimulus_train,
                                             self.light_stimulation_frequency)
+
+
+        # A simple stimulus
+        self.piezo_stimulus = SimpleStimulus(self.piezo_pin, self.piezo_duration)
 
 
 
@@ -179,11 +187,19 @@ class Task:
             self.dispense_reward()
             self.currentMouse.headfixed_rewards += 1
 
+
+            # SimpleStimulus, in this case, it's a piezo.
+            sleep(self.inter_reward_interval/2-self.reward_time)
+            self.piezo_stimulus.stimulate(self.collector, self.currentMouse.tag, i)
+            sleep(self.inter_reward_interval/2-self.piezo_duration)
+
+            
+            # Uncomment lines below to get LRL trainled back.
             # Light stimulus occurs every 10 seconds!
-            sleep(self.inter_reward_interval/2.0-self.reward_time)
+            #sleep(self.inter_reward_interval/2.0-self.reward_time)
             # Give the data collector so that it knows where to write the data and the mouse's tag
-            self.light_stimulus.stimulate(self.collector, self.currentMouse.tag)
-            sleep(self.inter_reward_interval/2.0-self.length_of_light_stimulus_train)
+            #self.light_stimulus.stimulate(self.collector, self.currentMouse.tag)
+            #sleep(self.inter_reward_interval/2.0-self.length_of_light_stimulus_train)
 
             ## MODIFY HERE FOR INCLUDING OTHER STIMULI.
         # end of reward/stimuli loop

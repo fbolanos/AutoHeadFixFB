@@ -134,6 +134,9 @@ class DataCollector:
     def save_light_stimulus(self, tag, led_side):
         self.save_helper(tag, time(), 'light-' + led_side)
 
+    def save_simple_stimulus(self, tag, counter):
+        self.save_helper(self, tag, 'stimulus-' + str(counter))
+
     def save_mouse_Headfix_end(self, tag):
         self.save_helper(tag, time(), 'complete')
 
@@ -169,12 +172,10 @@ class LightStimulus():
         self.counter = 0
         self.number_of_leds = len(self.led_to_turn_on)
 
-
     def setup_gpio_for_leds(self):
         GPIO.setup (self.stimulus_left_led_pin, GPIO.OUT)
         GPIO.setup (self.stimulus_center_led_pin, GPIO.OUT)
         GPIO.setup (self.stimulus_right_led_pin, GPIO.OUT)
-
 
     # Simple light stimulus!
     def stimulate(self, collector, tag):
@@ -198,3 +199,23 @@ class LightStimulus():
             GPIO.output(led_pin_to_use, False)
             sleep(self.stimulus_led_off_time)
 
+
+class SimpleStimulus():
+    def __init__(self, trigger_pin, duration):
+        # output pin that will go high
+        self.trigger_pin = trigger_pin
+        # duration of the high output in seconds
+        self.duration = duration
+
+        self.setup_gpio_lines()
+
+    def setup_gpio_lines(self):
+        GPIO.setup(self.trigger_pin, GPIO.OUT)
+
+    def stimulate(self, collector, tag, counter):
+        collector.save_simple_stimulus(tag, counter)
+
+        #Turn on the trigger for 'duration' time
+        GPIO.output(self.trigger_pin, True)
+        sleep(self.duration)
+        GPIO.output(self.trigger_pin, False)
