@@ -29,7 +29,7 @@ class Task:
         # output pin for the stimulus the right led (red cable)
         self.stimulus_right_led_pin = 16
         # Pin for the piezo
-        self.piezo_pin = 20
+        self.piezo_pin = 12
 
 
         # variables -timing
@@ -85,7 +85,7 @@ class Task:
         self.camera = BrainCamera()
 
         # The data collector/writer
-        self.collector = DataCollector(self.data_file_path)
+        self.collector = DataCollector(self.data_full_path)
 
         # The light stimulus class for the 3 LEDs, setups 3 more gpio lines depending on arguments.
         self.light_stimulus = LightStimulus(self.stimulus_left_led_pin,
@@ -217,7 +217,14 @@ class Task:
 
 
         # Time before the mouse is headfixed again.
-        sleep(self.skedaddle_time)
+        # However must actively check for  the pin in the event
+        # that a mouse changes during this time.
+        t_end_trial = time()
+        while(time()-t_end_trial < self.skedaddle_time):
+            if GPIO.input(self.range_pin) == 0:
+                return
+            else:
+                sleep(self.cpu_rest_time)
 
 
     # Simply dispenses water reward.
@@ -297,7 +304,7 @@ class Task:
 
 
     def save_current_stats(self):
-        with open(self.stats_file_name, "w") as file:
+        with open(self.stats_full_path, "w") as file:
             first_line = "Mouse_ID\tentries\tent_rew\thfixes\thf_rew\n"
             file.write(first_line)
             for mouse in self.mice:
