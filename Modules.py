@@ -135,7 +135,7 @@ class DataCollector:
         self.save_helper(tag, time(), 'light-' + led_side)
 
     def save_simple_stimulus(self, tag, counter):
-        self.save_helper(self, tag, 'stimulus-' + str(counter))
+        self.save_helper(tag, time(), 'stimulus-' + str(counter))
 
     def save_mouse_Headfix_end(self, tag):
         self.save_helper(tag, time(), 'complete')
