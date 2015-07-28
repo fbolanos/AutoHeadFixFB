@@ -13,15 +13,15 @@ class Task:
         self.currentMouse = Mouse("0123456789")
 
         # output pin for the pistons
-        self.pistons_pin = 17
+        self.pistons_pin = 24
         # output pin for the water dispenser
-        self.reward_pin = 27
+        self.reward_pin = 17
         # input pin for the tag in range on  the RFID reader
-        self.range_pin = 22
+        self.range_pin = 18
         # input pin for the head bar contact in the chamber
-        self.contact_pin = 6
+        self.contact_pin = 22
         # output pin for the Blue LED.
-        self.led_pin = 19
+        self.led_pin = 4
         # output pin for the stimulus the left LED (blue cable)
         self.stimulus_left_led_pin = 20
         # output pin for the stimulus the center led (green cable)
@@ -32,18 +32,18 @@ class Task:
 
         # variables -timing
         # reward time, in seconds
-        self.reward_time = 400e-3
+        self.reward_time = 150e-3
         # time for mouse to get head off the contacts when session ends, so he won't be immediately fixed again
         self.skedaddle_time = 3
         # number of rewards to give in a head fix trial
-        self.number_of_headfix_rewards = 3
+        self.number_of_headfix_rewards = 6
         # time between rewards, in seconds
         # time of a session is (nRewards) * interRewardInterval
-        self.inter_reward_interval = 10.0
+        self.inter_reward_interval = 5.0
         # maximum number of entrance rewards that will be given.
-        self.maximum_entrance_rewards = 100
+        self.maximum_entrance_rewards = 150
         # time before an entrance reward is given to avoid immediate in an outs
-        self.entrance_reward_delay_time = 2.0
+        self.entrance_reward_delay_time = 1.0
         # time for when the program is idling or waiting for something, ensures there isn't cpu overload.
         self.cpu_rest_time = 0.01
         # time the stimulus led remains on
@@ -59,7 +59,7 @@ class Task:
         # where to put the text file and video files
         # Format: /media/Cage1/MMDD/ID_type/Videos/*
         #         /media/Cage1/MMDD/ID_type/TextFiles/*
-        self.data_file_path = "/media/Cage1/"
+        self.data_file_path = "/media/118D-D10B/HeadFix2Data/"
         self.textfile_path = "TextFiles/"
         self.video_path = "Videos/"
         self.data_full_path = ""
@@ -81,7 +81,7 @@ class Task:
         self.camera = BrainCamera()
 
         # The data collector/writer
-        self.collector = DataCollector(self.data_file_path)
+        self.collector = DataCollector(self.data_full_path)
 
         # The light stimulus class for the 3 LEDs, setups 3 more gpio lines depending on arguments.
         self.light_stimulus = LightStimulus(self.stimulus_left_led_pin,
@@ -180,10 +180,10 @@ class Task:
             self.currentMouse.headfixed_rewards += 1
 
             # Light stimulus occurs every 10 seconds!
-            sleep(self.inter_reward_interval/2.0-self.reward_time)
+            sleep(self.inter_reward_interval-self.reward_time)
             # Give the data collector so that it knows where to write the data and the mouse's tag
-            self.light_stimulus.stimulate(self.collector, self.currentMouse.tag)
-            sleep(self.inter_reward_interval/2.0-self.length_of_light_stimulus_train)
+            #self.light_stimulus.stimulate(self.collector, self.currentMouse.tag)
+            #sleep(self.inter_reward_interval/2.0-self.length_of_light_stimulus_train)
 
             ## MODIFY HERE FOR INCLUDING OTHER STIMULI.
         # end of reward/stimuli loop
@@ -281,7 +281,7 @@ class Task:
 
 
     def save_current_stats(self):
-        with open(self.stats_file_name, "w") as file:
+        with open(self.stats_full_path, "w") as file:
             first_line = "Mouse_ID\tentries\tent_rew\thfixes\thf_rew\n"
             file.write(first_line)
             for mouse in self.mice:
