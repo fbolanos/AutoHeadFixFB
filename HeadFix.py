@@ -31,8 +31,10 @@ class Task:
 
 
         # variables -timing
-        # reward time, in seconds
-        self.reward_time = 150e-3
+        # headfix reward solenoid opening time, in seconds
+        self.headfix_reward_time = 0.150
+        # entrance reward solenoid opening itme, in seconds
+        self.entrance_reward_time = 0.080
         # time for mouse to get head off the contacts when session ends, so he won't be immediately fixed again
         self.skedaddle_time = 3
         # number of rewards to give in a head fix trial
@@ -140,7 +142,7 @@ class Task:
         if not GPIO.input(self.contact_pin):
             # Check if they are still allowed rewards.
             if (self.currentMouse.entrance_rewards < self.maximum_entrance_rewards):
-                self.dispense_reward()
+                self.dispense_entrance_reward()
                 self.currentMouse.entrance_rewards += 1
 
 
@@ -176,7 +178,7 @@ class Task:
 
         for i in range(self.number_of_headfix_rewards):
             self.collector.save_mouse_Reward_given(self.currentMouse.tag, i)
-            self.dispense_reward()
+            self.dispense_headfix_reward()
             self.currentMouse.headfixed_rewards += 1
 
             # Light stimulus occurs every 10 seconds!
@@ -204,10 +206,16 @@ class Task:
         sleep(self.skedaddle_time)
 
 
-    # Simply dispenses water reward.
-    def dispense_reward(self):
+    # Headfix reward function
+    def dispense_headfix_reward(self):
         GPIO.output(self.reward_pin, 1)
-        sleep(self.reward_time)
+        sleep(self.headfix_reward_time)
+        GPIO.output(self.reward_pin, 0)
+
+    # Entrance reward function
+    def dispense_entrance_reward(self):
+        GPIO.output(self.reward_pin, 1)
+        sleep(self.entrance_reward_time)
         GPIO.output(self.reward_pin, 0)
 
     # Naming scheme: headFix_XX_MMDD.txt
